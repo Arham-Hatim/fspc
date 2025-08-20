@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\CategoryController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -13,6 +15,25 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
+Route::middleware(['auth:admin'])->group(function () {
+
+    Route::controller(AdminController::class)->group(function () {
+        Route::get('/', 'index')->name('dashboard');
+        Route::get('data/{sample}','DataSample')->name('DataSample');
+        Route::get('logout', 'logout')->name('logout');
+    });
+
+    Route::resource('category', CategoryController::class);
+    Route::get('import/categories/form', [CategoryController::class, 'importForm'])->name('categoryImportFrom');
+    Route::post('import/categories', [CategoryController::class, 'import'])->name('categoryImport');
+
+});
+
+Route::middleware(['guest:admin'])->group(function () {
+
+    Route::controller(AdminController::class)->group(function () {
+        Route::get('login', 'loginForm')->name('login');
+        Route::post('authCheck', 'login')->name('authCheck');
+    });
+
 });
