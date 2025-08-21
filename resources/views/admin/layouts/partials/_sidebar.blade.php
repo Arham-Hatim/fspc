@@ -38,7 +38,7 @@
             </a>
         </li>
         <li>
-            <a href="#" class="">
+            <a href="{{ route('chapter.index') }}" class="">
                 <div class="parent-icon">
                     <i class="fa-solid fa-box"></i>
                 </div>
@@ -50,7 +50,7 @@
               </ul> -->
         </li>
         <li>
-            <a href="#" class="">
+            <a href="{{ route('mcq.index') }}" class="">
                 <div class="parent-icon">
                     <i class="fa-solid fa-box"></i>
                 </div>

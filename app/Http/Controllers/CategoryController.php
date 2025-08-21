@@ -14,7 +14,7 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        $categories = Category::orderByDesc('updated_at')->get();
+        $categories = Category::withCount('chapters')->orderByDesc('updated_at')->get();
         return view('admin.category.list', compact('categories'));
     }
 
@@ -90,14 +90,14 @@ class CategoryController extends Controller
 
     private function importCategories($sheet)
     {
-        $images = Helpers::extractImages($sheet);
+        $images = Helpers::extractImages($sheet, 'category-image');
         $importCount = 0;
 
         foreach ($sheet->getRowIterator(2) as $row) {
             $rowIndex = $row->getRowIndex();
-            $name = $sheet->getCell('A' . $rowIndex)->getValue();
+            $name = trim((string) $sheet->getCell('A' . $rowIndex)->getValue());
 
-            if (!$name) {
+            if (empty($name)) {
                 continue;
             }
 
@@ -110,14 +110,16 @@ class CategoryController extends Controller
 
             // Get status - default to 1 if empty
             $statusCell = $sheet->getCell('D' . $rowIndex)->getValue();
-            $status = $statusCell !== null ? (bool) $statusCell : 1;
+            $status = ($statusCell === null) ? 1 : (intval($statusCell) === 1 ? 1 : 0);
 
-            Category::create([
-                'name' => $name,
-                'description' => $description,
-                'image' => $image,
-                'status' => $status
-            ]);
+            Category::updateOrCreate(
+                ['name' => $name],
+                [
+                    'description' => $description,
+                    'image' => $image,
+                    'status' => $status,
+                ]
+            );
 
             $importCount++;
         }

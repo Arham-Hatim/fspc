@@ -14,7 +14,12 @@ class Category extends Model
     protected function image(): Attribute
     {
         return Attribute::make(
-            get: fn($value) => asset('storage/category-image/' . $value),
+            get: fn($value) => $value ? asset('storage/category-image/' . $value) : asset('images/default.jpg')
         );
+    }
+
+    public function chapters()
+    {
+        return $this->hasMany(Chapter::class, 'category_id');
     }
 }

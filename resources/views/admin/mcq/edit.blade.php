@@ -50,15 +50,15 @@
     <main class="page-content">
         <!--breadcrumb-->
         <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
-            <div class="breadcrumb-title pe-3">Add Supplier</div>
+            <div class="breadcrumb-title pe-3">Update Customer</div>
             <div class="ps-3">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-0 p-0">
                         <li class="breadcrumb-item"><a href="javascript:;">Dashboard</a>
                         </li>
-                        <li class="breadcrumb-item"><a href="javascript:;">Material Suppliers</a>
+                        <li class="breadcrumb-item"><a href="javascript:;">Job Customers</a>
                         </li>
-                        <li class="breadcrumb-item active" aria-current="page">Add Material Supplier</li>
+                        <li class="breadcrumb-item active" aria-current="page">Update Job Customer</li>
                     </ol>
                 </nav>
             </div>
@@ -69,12 +69,13 @@
             <div class="col-xl-12 mx-auto">
                 <div class="card">
                     <div class="card-body">
-                        <h6 class="mb-0 text-uppercase white">Add Material Supplier</h6>
+                        <h6 class="mb-0 text-uppercase white">Update Job Customer</h6>
                         <hr />
                         <div class="p-4 border rounded">
-                            <form class="row g-3 needs-validation" action="{{ route('supplier.store') }}" method="POST"
-                                enctype="multipart/form-data" id="supplierForm">
+                            <form class="row g-3 needs-validation" action="{{ route('customer.update', $customer->id) }}"
+                                method="POST" enctype="multipart/form-data" id="customerForm">
                                 @csrf
+                                @method('PUT')
                                 @if ($errors->any())
                                     <div class="alert alert-danger mt-2">
                                         <ul>
@@ -91,12 +92,14 @@
                                     </div>
                                 @endif
                                 <div class="col-md-6">
-                                    <label for="validationCustom01" class="form-label white">Supplier Name*</label>
-                                    <input type="text" class="form-control" name="name" required>
+                                    <label for="validationCustom01" class="form-label white">Customer Name*</label>
+                                    <input type="text" value="{{ $customer->name }}" class="form-control" name="name"
+                                        required>
                                 </div>
                                 <div class="col-md-6">
                                     <label for="validationCustom01" class="form-label white">Availability Time*</label>
-                                    <input type="time" class="form-control" name="time" required>
+                                    <input type="time" value="{{ \Carbon\Carbon::parse($customer->time)->format('H:i') }}"
+                                        class="form-control" name="time" required>
                                 </div>
 
                                 <div class="col-2">
@@ -109,11 +112,11 @@
 
                                 <div class="col-xl-12 mx-auto mb-4">
                                     <div class="d-flex align-items-center justify-content-end mt-2">
-                                        <a href="{{ route('supplier.index') }}">
+                                        <a href="{{ route('customer.index') }}">
                                             <div class="CreateJobCancelBtn">Cancel</div>
                                         </a>
                                         <button type="submit" class="btn CreateJobFinishBtn ms-2">
-                                            Add
+                                            Update
                                         </button>
                                     </div>
                                 </div>
@@ -145,6 +148,8 @@
             let marker = null;
             let currentPolygon = null;
             let isPolygonMode = false;
+            let originalPoint = null;
+            let originalArea = null;
 
             // Append Search Bar
             let $searchInput = $('<input type="text" class="mapSearchInput" placeholder="Search location..." style="position:absolute; top:10px; left:50%; transform: translateX(-50%); width: 300px; z-index: 5; padding: 5px; border-radius: 4px; border: 1px solid #ccc;">');
@@ -332,7 +337,6 @@
 
             // reset map
             $container.find('.resetLocation').on('click', function () {
-
                 if (marker) {
                     marker.setMap(null);
                     marker = null;
@@ -348,30 +352,138 @@
                 $container.find('.address').val('');
                 $container.find('.mapSearchInput').val('');
 
-                map.setCenter(defaultCenter);
-                map.setZoom(5);
+                // reset to original point if available
+                if (originalPoint) {
+                    const position = new google.maps.LatLng(originalPoint.lat, originalPoint.lng);
+
+                    marker = new google.maps.Marker({
+                        position,
+                        map,
+                        draggable: true,
+                    });
+
+                    map.setCenter(position);
+                    map.setZoom(14);
+
+                    $container.find('.locationPoint').val(JSON.stringify(originalPoint));
+
+                    geocoder.geocode({ location: position }, function (results, status) {
+                        if (status === "OK" && results[0]) {
+                            $container.find('.address').val(results[0].formatted_address);
+                            $searchInput.val(results[0].formatted_address);
+                        }
+                    });
+
+                    marker.addListener('dragend', onMarkerMoved);
+                }
+
+                // reset to original area if available
+                if (originalArea) {
+                    const path = originalArea.map(coord => new google.maps.LatLng(coord.lat, coord.lng));
+
+                    currentPolygon = new google.maps.Polygon({
+                        paths: path,
+                        map: map,
+                        fillColor: '#2c54a3',
+                        fillOpacity: 0.35,
+                        strokeWeight: 2,
+                        clickable: true,
+                        editable: true,
+                        zIndex: 1
+                    });
+
+                    google.maps.event.addListener(currentPolygon.getPath(), 'set_at', () => updatePolygonCoordinates(currentPolygon));
+                    google.maps.event.addListener(currentPolygon.getPath(), 'insert_at', () => updatePolygonCoordinates(currentPolygon));
+
+                    $container.find('.locationArea').val(JSON.stringify(originalArea));
+
+                    const bounds = new google.maps.LatLngBounds();
+                    path.forEach(p => bounds.extend(p));
+                    map.fitBounds(bounds);
+                }
+
+                if (!originalPoint && !originalArea) {
+                    map.setCenter(defaultCenter);
+                    map.setZoom(5);
+                }
             });
+
+            const pointVal = $container.find('.locationPoint').val();
+            const areaVal = $container.find('.locationArea').val();
+
+            // for predefined point set on map
+            if (pointVal) {
+                try {
+                    const point = JSON.parse(pointVal);
+                    originalPoint = point;
+                    const position = new google.maps.LatLng(point.lat, point.lng);
+
+                    marker = new google.maps.Marker({
+                        position,
+                        map,
+                        draggable: true,
+                    });
+
+                    map.setCenter(position);
+                    map.setZoom(14);
+
+                    marker.addListener('dragend', onMarkerMoved);
+                } catch (e) {
+                    console.error('Invalid locationPoint value:', e);
+                }
+            }
+
+            // for predefined area set on map
+            if (areaVal) {
+                try {
+                    const area = JSON.parse(areaVal);
+                    originalArea = area;
+                    const path = area.map(coord => new google.maps.LatLng(coord.lat, coord.lng));
+
+                    currentPolygon = new google.maps.Polygon({
+                        paths: path,
+                        map: map,
+                        fillColor: '#2c54a3',
+                        fillOpacity: 0.35,
+                        strokeWeight: 2,
+                        clickable: true,
+                        editable: true,
+                        zIndex: 1
+                    });
+
+                    google.maps.event.addListener(currentPolygon.getPath(), 'set_at', () => updatePolygonCoordinates(currentPolygon));
+                    google.maps.event.addListener(currentPolygon.getPath(), 'insert_at', () => updatePolygonCoordinates(currentPolygon));
+
+                    const bounds = new google.maps.LatLngBounds();
+                    path.forEach(p => bounds.extend(p));
+                    map.fitBounds(bounds);
+                } catch (e) {
+                    console.error('Invalid locationArea value:', e);
+                }
+            }
         }
     </script>
 
     <script>
         $(document).ready(function () {
             // render location html
-            function renderLocationHtml() {
-                let index = $('#location').find('.locationAddress').length;
-                console.log(index);
-                let url = "{{ route('renderSupplierLocation', ['index' => '__index__']) }}".replace('__index__', index);
+            const customerLocations = @json($customer->addresses ?? []);
+
+            function renderLocationHtml(address = null, index = null) {
+                index = index ?? $('#location').find('.locationAddress').length;
+                let url = "{{ route('renderCustomerLocation', ['index' => '__index__']) }}".replace('__index__', index);
+
+                if (address && address.id) {
+                    url += '/' + address.id;
+                }
+
                 $.ajax({
-                    url: url,
+                    url,
                     method: 'GET',
                     success: function (response) {
-                        console.log(response);
                         const $newBlock = $(response);
                         $('#location').append($newBlock);
-
-                        setTimeout(() => {
-                            initMap($newBlock);
-                        }, 100);
+                        setTimeout(() => initMap($newBlock), 100);
                     },
                     error: function (error) {
                         console.error(error);
@@ -379,7 +491,13 @@
                 });
             }
 
-            renderLocationHtml();
+            if (customerLocations.length) {
+                customerLocations.forEach((addr, i) => {
+                    renderLocationHtml(addr, i);
+                });
+            } else {
+                renderLocationHtml();
+            }
 
             // add new location 
             $('.addLocation').on('click', function () {
@@ -400,7 +518,7 @@
             });
 
             // point and area is not empty validation
-            $('#supplierForm').on('submit', function (e) {
+            $('#customerForm').on('submit', function (e) {
                 let valid = true;
 
                 $('.locationAddress').each(function () {

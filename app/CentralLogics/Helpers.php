@@ -39,7 +39,7 @@ class Helpers
     }
 
     // for excel sheet upload and filter
-    public static function extractImages($sheet)
+    public static function extractImages($sheet, $dir)
     {
         $images = [];
 
@@ -67,7 +67,7 @@ class Helpers
                     true
                 );
 
-                $imageName = Helpers::upload('category-image', $extension, $uploadedFile, null);
+                $imageName = Helpers::upload($dir, $extension, $uploadedFile, null);
 
                 if ($imageName) {
                     $images[$coordinates] = $imageName;
@@ -317,4 +317,55 @@ class Helpers
 
         return $html;
     }
+
+    public static function getClosestLevel($input, $allowedLevels)
+    {
+        $input = $input ?: 'easy';
+
+        $closest = null;
+        $shortest = -1;
+
+        foreach ($allowedLevels as $level) {
+            $lev = levenshtein($input, $level);
+
+            // exact match
+            if ($lev === 0) {
+                return $level;
+            }
+
+            // find closest typo match
+            if ($lev <= $shortest || $shortest < 0) {
+                $closest = $level;
+                $shortest = $lev;
+            }
+        }
+
+        return $closest;
+    }
+
+    public static function extractYouTubeId($input)
+    {
+        // If iframe, extract src first
+        if (preg_match('/<iframe[^>]+src="([^"]+)"/i', $input, $matches)) {
+            $input = $matches[1];
+        }
+
+        // Match embed link
+        if (preg_match('/youtube\.com\/embed\/([^\?&"]+)/i', $input, $matches)) {
+            return $matches[1];
+        }
+
+        // Match watch?v= link
+        if (preg_match('/v=([^\?&"]+)/i', $input, $matches)) {
+            return $matches[1];
+        }
+
+        // Match youtu.be link
+        if (preg_match('/youtu\.be\/([^\?&"]+)/i', $input, $matches)) {
+            return $matches[1];
+        }
+
+        return null;
+    }
+
 }

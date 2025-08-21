@@ -19,22 +19,22 @@
     <main class="page-content">
         <!--breadcrumb-->
         <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
-            <div class="breadcrumb-title pe-3">Categories</div>
+            <div class="breadcrumb-title pe-3">Chapters</div>
             <div class="ps-3">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-0 p-0">
                         <li class="breadcrumb-item"><a href="javascript:;">Dashboard</a>
                         </li>
-                        <li class="breadcrumb-item active" aria-current="page">Categories</li>
+                        <li class="breadcrumb-item active" aria-current="page">Chapters</li>
                     </ol>
                 </nav>
             </div>
             <div class="ms-auto">
                 <div class="btn-group">
-                    <a href="{{ route('categoryImportFrom') }}" type="button" class="btn btn-primary">Import Categories</a>
+                    <a href="{{ route('chapterImportFrom') }}" type="button" class="btn btn-primary">Import Chapters</a>
                 </div>
                 <div class="btn-group">
-                    <a href="#" type="button" class="btn btn-primary">Add Category</a>
+                    <a href="#" type="button" class="btn btn-primary">Add Chapter</a>
                 </div>
             </div>
         </div>
@@ -44,7 +44,7 @@
             <div class="col-12 col-lg-12 col-xl-12 d-flex">
                 <div class="card radius-10 w-100">
                     <div class="card-body">
-                        <h6 class="mb-0 text-uppercase">All Categories</h6>
+                        <h6 class="mb-0 text-uppercase">All Chapters</h6>
                         <hr>
                         @if (session('success'))
                             <div class="alert alert-success mt-2">
@@ -56,43 +56,48 @@
                                 <thead>
                                     <tr>
                                         <th>S.No</th>
-                                        <th>Name</th>
-                                        <th>Image</th>
+                                        <th>Title</th>
                                         <th>Description</th>
-                                        <th>Chapters</th>
+                                        <th>Summary</th>
+                                        <th>Mcqs</th>
+                                        <th>Category</th>
                                         <th>Status</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @forelse($categories as $category)
+                                    @forelse($chapters as $chapter)
                                         <tr>
                                             <td class="">
                                                 <div class="tableContent d-flex align-items-center">{{ $loop->iteration }}</div>
                                             </td>
                                             <td class="">
-                                                <div class="tableContent d-flex align-items-center">{{ $category->name }}</div>
+                                                <div class="tableContent d-flex align-items-center">{{ $chapter->title }}</div>
                                             </td>
                                             <td class="">
                                                 <div class="tableContent d-flex align-items-center">
-                                                    <img src="{{ $category->image }}" class="rounded mx-auto d-block w-10"
-                                                        alt="category image">
+                                                    {{ Str::limit($chapter->description ?? 'N/A') }}
                                                 </div>
                                             </td>
                                             <td class="">
                                                 <div class="tableContent d-flex align-items-center">
-                                                    {!! Str::limit($category->description ?? 'N/A') !!}
+                                                    {!! Str::limit($chapter->summary ?? 'N/A') !!}
                                                 </div>
                                             </td>
                                             <td class="">
                                                 <div class="tableContent d-flex align-items-center">
-                                                    {{ $category->chapters_count }}
+                                                    {{ $chapter->mcqs_count }}
+                                                </div>
+                                            </td>
+                                            <td class="">
+                                                <div class="tableContent d-flex align-items-center">
+                                                    {{ $chapter->category?->name ?? 'N/A' }}
                                                 </div>
                                             </td>
                                             <td class="">
                                                 <div class="tableContent d-flex align-items-center">
                                                     <label class="switch">
-                                                        <input type="checkbox" {{ $category->status ? 'checked' : '' }}>
+                                                        <input type="checkbox" {{ $chapter->status ? 'checked' : '' }}>
                                                         <span class="slider"></span>
                                                     </label>
                                                 </div>

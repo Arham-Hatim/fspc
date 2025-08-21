@@ -104,15 +104,15 @@
     <main class="page-content">
         <!--breadcrumb-->
         <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
-            <div class="breadcrumb-title pe-3">Material Supplier</div>
+            <div class="breadcrumb-title pe-3">Job Customer</div>
             <div class="ps-3">
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-0 p-0">
                         <li class="breadcrumb-item"><a href="javascript:;">Dashboard</a>
                         </li>
-                        <li class="breadcrumb-item"><a href="javascript:;">Material Suppliers</a>
+                        <li class="breadcrumb-item"><a href="javascript:;">Job Customers</a>
                         </li>
-                        <li class="breadcrumb-item active" aria-current="page">View Material Supplier</li>
+                        <li class="breadcrumb-item active" aria-current="page">View Job Customer</li>
                     </ol>
                 </nav>
             </div>
@@ -124,13 +124,13 @@
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div class="d-flex">
-                                <h6 class="mb-0 white">{{ $supplier->name }}</h6>
+                                <h6 class="mb-0 white">{{ $customer->name }}</h6>
                             </div>
                             <div class="menuBtn">
                                 <i class="fa-solid fa-bars"></i>
                             </div>
                             <ul class="dropdown-menu" style="right: 8px;top: 35px;">
-                                <li><a class="dropdown-item" href="{{ route('supplier.edit', $supplier->id) }}">Edit
+                                <li><a class="dropdown-item" href="{{ route('customer.edit', $customer->id) }}">Edit
                                         Details</a></li>
                                 <hr class="dropdown-divider m-0 white">
                                 <li><a class="dropdown-item" href="#">Delete Driver</a></li>
@@ -144,20 +144,20 @@
                                 <div class="col-lg-12 col-md-12 col-sm-12">
                                     <div class="row">
                                         <div class="col-lg-6 col-md-6 col-sm-12 mb-4">
-                                            <label for="">Supplier Name</label>
+                                            <label for="">Customer Name</label>
                                             <div class="detailField mt-1 w-100">
-                                                <p class="m-0">{{ $supplier->name }}</p>
+                                                <p class="m-0">{{ $customer->name }}</p>
                                             </div>
                                         </div>
                                         <div class="col-lg-6 col-md-6 col-sm-12 mb-4">
                                             <label for="">Availability Time</label>
                                             <div class="detailField mt-1 w-100">
-                                                <p class="m-0">{{ $supplier->time }}</p>
+                                                <p class="m-0">{{ $customer->time }}</p>
                                             </div>
                                         </div>
 
                                         <div class="col-12" id="location">
-                                            @forelse($supplier->addresses as $address)
+                                            @forelse($customer->addresses as $address)
                                                 <div class="row locationAddress border border-primary p-3 mt-2">
                                                     <div class="col-4">
                                                         <div class="LocationAddressInput">

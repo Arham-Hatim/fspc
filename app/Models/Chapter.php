@@ -8,4 +8,15 @@ use Illuminate\Database\Eloquent\Model;
 class Chapter extends Model
 {
     use HasFactory;
+    protected $guarded = [];
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category_id');
+    }
+
+    public function mcqs()
+    {
+        return $this->hasMany(Mcq::class, 'chapter_id');
+    }
 }
