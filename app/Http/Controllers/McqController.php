@@ -16,7 +16,14 @@ class McqController extends Controller
      */
     public function index()
     {
-        $mcqs = Mcq::orderByDesc('updated_at')->get();
+        $mcqs = Mcq::with('chapter:id,title')
+            ->orderByDesc('updated_at')
+            ->get()
+            ->groupBy(function ($mcq) {
+                return $mcq->chapter?->title ?? 'N/A';
+            })->flatten();
+
+            // return $mcqs;
         return view('admin.mcq.list', compact('mcqs'));
     }
 

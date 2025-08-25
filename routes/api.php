@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware(['auth:sanctum'])->group(function () {
+Route::middleware(['auth:sanctum', 'verified.api'])->group(function () {
 
     Route::controller(AuthController::class)->group(function () {
         Route::get('logout', 'logout');
@@ -23,6 +23,16 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::post('change/password', 'changePassword');
         Route::get('delete/user', 'deleteAccount');
     });
+});
+
+// user email verification
+Route::middleware('auth:sanctum')->group(function () {
+
+    Route::controller(AuthController::class)->group(function () {
+        Route::post('email/verify/otp', 'verifyOtp');
+        Route::get('email/resend/otp', 'resendOtp');
+    });
+
 });
 
 // user forgot verification

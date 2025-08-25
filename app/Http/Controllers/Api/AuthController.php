@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\CentralLogics\Helpers;
 use App\Http\Controllers\Controller;
+use App\Mail\EmailVerficationOtpMail;
 use App\Mail\PasswordResetOtpMail;
 use App\Models\User;
 use App\Models\UserPasswordResetOtp;
@@ -39,6 +40,9 @@ class AuthController extends Controller
 
         try {
 
+            $otp = rand(100000, 999999);
+            $expiresAt = Carbon::now()->addMinutes(30);
+
             $user = User::onlyTrashed()->where('email', $request->email)->first();
 
             if ($user) {
@@ -47,6 +51,8 @@ class AuthController extends Controller
                     'name' => $request->name,
                     'password' => Hash::make($request->password),
                     'device_token' => $request->has('device_token') ? $request->device_token : null,
+                    'email_verification_otp' => $otp,
+                    'email_verification_expires_at' => $expiresAt,
                 ]);
             } else {
                 $user = User::create([
@@ -54,15 +60,18 @@ class AuthController extends Controller
                     'email' => $request->email,
                     'password' => Hash::make($request->password),
                     'device_token' => $request->has('device_token') ? $request->device_token : null,
+                    'email_verification_otp' => $otp,
+                    'email_verification_expires_at' => $expiresAt,
                 ]);
             }
 
             $user->tokens()->delete();
+            Mail::to($request->email)->send(new EmailVerficationOtpMail($otp));
             $token = $user->createToken('user')->plainTextToken;
 
             return response()->json([
                 'status' => true,
-                'message' => 'Registration successful.',
+                'message' => 'Registration successful. Please check your email to verify your account with OTP.',
                 'token' => $token,
                 'token_type' => 'bearer',
                 'user' => $user,
@@ -184,6 +193,85 @@ class AuthController extends Controller
                 'status' => false,
                 'message' => 'Server error',
                 'errors' => [$ex->getMessage()],
+            ], 500);
+        }
+    }
+
+    public function verifyOtp(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'otp' => 'required|digits:6',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation errors',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        try {
+
+            $user = User::where('email', Auth::user()->email)->first();
+
+            if ($user->email_verification_otp !== $request->otp) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'Invalid OTP',
+                ], 400);
+            }
+
+            if (Carbon::now()->gt($user->email_verification_expires_at)) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'OTP has expired',
+                ], 400);
+            }
+
+            $user->email_verified_at = Carbon::now();
+            $user->email_verification_otp = null;
+            $user->email_verification_expires_at = null;
+            $user->save();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Email successfully verified',
+            ], 200);
+
+        } catch (\Exception $ex) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Server error',
+                'errors' => [$ex->getMessage()]
+            ], 500);
+        }
+    }
+
+    public function resendOtp(Request $request)
+    {
+        try {
+
+            $user = User::where('email', Auth::user()->email)->first();
+
+            $otp = rand(100000, 999999);
+            $expiresAt = Carbon::now()->addMinutes(30);
+
+            $user->email_verification_otp = $otp;
+            $user->email_verification_expires_at = $expiresAt;
+            $user->save();
+            Mail::to($user->email)->send(new EmailVerficationOtpMail($otp));
+
+            return response()->json([
+                'status' => true,
+                'message' => 'New OTP has been sent to your email.',
+            ], 200);
+
+        } catch (\Exception $ex) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Server error',
+                'errors' => [$ex->getMessage()]
             ], 500);
         }
     }

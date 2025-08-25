@@ -56,12 +56,15 @@
                                 <thead>
                                     <tr>
                                         <th>S.No</th>
-                                        <th>Title</th>
-                                        <th>Description</th>
-                                        <th>Summary</th>
-                                        <th>Mcqs</th>
-                                        <th>Category</th>
-                                        <th>Status</th>
+                                        <th>Chapter</th>
+                                        <th>Question</th>
+                                        <th>Derived Question</th>
+                                        <th>Correct Reasoning</th>
+                                        <th>Reference</th>
+                                        <th>Question Image</th>
+                                        <th>Video</th>
+                                        <th>Options</th>
+                                        <th>Level</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -72,43 +75,67 @@
                                                 <div class="tableContent d-flex align-items-center">{{ $loop->iteration }}</div>
                                             </td>
                                             <td class="">
-                                                <div class="tableContent d-flex align-items-center"></div>
-                                            </td>
-                                            <td class="">
                                                 <div class="tableContent d-flex align-items-center">
-                                                    
+                                                    {{ $mcq->chapter?->title ?? 'N/A' }}
                                                 </div>
                                             </td>
                                             <td class="">
                                                 <div class="tableContent d-flex align-items-center">
-                                                    
+                                                    {!! Str::limit($mcq->question_text ?? 'N/A') !!}
                                                 </div>
                                             </td>
                                             <td class="">
                                                 <div class="tableContent d-flex align-items-center">
-                                                   
+                                                    {{ Str::limit($mcq->derived_question ?? 'N/A') }}
                                                 </div>
                                             </td>
                                             <td class="">
                                                 <div class="tableContent d-flex align-items-center">
-                                                   
+                                                    {{ Str::limit($mcq->correct_option_reasoning ?? 'N/A') }}
                                                 </div>
                                             </td>
                                             <td class="">
                                                 <div class="tableContent d-flex align-items-center">
-                                                    <label class="switch">
-                                                        <input type="checkbox" >
-                                                        <span class="slider"></span>
-                                                    </label>
+                                                    {!! Str::limit($mcq->reference_text ?? 'N/A') !!}
+                                                </div>
+                                            </td>
+                                            <td class="">
+                                                <div class="tableContent d-flex align-items-center">
+                                                    @if ($mcq->question_image)
+                                                        <img src="{{ $mcq->question_image }}" class="rounded mx-auto d-block w-50"
+                                                            alt="question image">
+                                                    @else
+                                                        N/A
+                                                    @endif
+                                                </div>
+                                            </td>
+                                            <td class="">
+                                                <div class="tableContent d-flex align-items-center">
+                                                    {{ $mcq->video_url ?? 'N/A' }}
+                                                </div>
+                                            </td>
+                                            <td class="">
+                                                <div class="tableContent d-flex align-items-center">
+                                                    5 hard code
+                                                </div>
+                                            </td>
+                                            <td class="">
+                                                <div class="tableContent d-flex align-items-center">
+                                                    {{ $mcq->level }}
                                                 </div>
                                             </td>
                                             <td class="">
                                                 <div class="tableContent d-flex align-items-center">
                                                     <div class="btn-group">
-                                                        <a href="#" type="button" class="btn btn-outline-dark"><i
-                                                                class="lni lni-eye"></i></a>
-                                                        <button type="button" class="btn btn-outline-dark"><i
-                                                                class="lni lni-pencil"></i></button>
+                                                        <a href="#" type="button" class="btn btn-outline-dark">
+                                                            <i class="lni lni-eye"></i>
+                                                        </a>
+                                                        <button type="button" class="btn btn-outline-dark">
+                                                            <i class="lni lni-pencil"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-outline-dark">
+                                                            <i class="lni lni-trash"></i>
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </td>

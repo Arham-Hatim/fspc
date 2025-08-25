@@ -38,29 +38,34 @@
             </a>
         </li>
         <li>
-            <a href="{{ route('chapter.index') }}" class="">
+            <a href="javascript:;" class="">
                 <div class="parent-icon">
                     <i class="fa-solid fa-box"></i>
                 </div>
                 <div class="menu-title">Chapters</div>
             </a>
-            <!-- <ul>
-                <li> <a href="javascript:;"><i class="bi bi-circle"></i>Blank</a>
+            <ul>
+                <li>
+                    <a href="{{ route('chapter.index') }}">
+                        <i class="bi bi-circle"></i>
+                        List
+                    </a>
                 </li>
-              </ul> -->
-        </li>
-        <li>
-            <a href="{{ route('mcq.index') }}" class="">
-                <div class="parent-icon">
-                    <i class="fa-solid fa-box"></i>
-                </div>
-                <div class="menu-title">Mcqs</div>
-            </a>
-            <!-- <ul>
-                <li> <a href="javascript:;"><i class="bi bi-circle"></i>Blank</a>
+                <li>
+                    <a href="{{ route('mcq.index') }}">
+                        <i class="bi bi-circle"></i>
+                        Mcqs
+                    </a>
                 </li>
-              </ul> -->
+                <li>
+                    <a href="#">
+                        <i class="bi bi-circle"></i>
+                        Mcq Options
+                    </a>
+                </li>
+            </ul>
         </li>
+
         <li>
             <a href="DriverInvoice.php" class="">
                 <div class="parent-icon">
